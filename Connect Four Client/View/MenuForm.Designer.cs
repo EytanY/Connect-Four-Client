@@ -39,8 +39,9 @@
             this.PlayerIDLbl = new System.Windows.Forms.Label();
             this.PlayerIDInputLbl = new System.Windows.Forms.Label();
             this.StartGameButton = new System.Windows.Forms.Button();
-            this.button2 = new System.Windows.Forms.Button();
+            this.LogoutButton = new System.Windows.Forms.Button();
             this.ShowInformationButton = new System.Windows.Forms.Button();
+            this.button3 = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // PlayerInfoLbl
@@ -152,31 +153,42 @@
             this.StartGameButton.UseVisualStyleBackColor = true;
             this.StartGameButton.Click += new System.EventHandler(this.StartGameButton_Click);
             // 
-            // button2
+            // LogoutButton
             // 
-            this.button2.Location = new System.Drawing.Point(520, 58);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(8, 8);
-            this.button2.TabIndex = 12;
-            this.button2.Text = "button2";
-            this.button2.UseVisualStyleBackColor = true;
+            this.LogoutButton.Location = new System.Drawing.Point(520, 58);
+            this.LogoutButton.Name = "LogoutButton";
+            this.LogoutButton.Size = new System.Drawing.Size(8, 8);
+            this.LogoutButton.TabIndex = 12;
+            this.LogoutButton.Text = "Logout\r\n";
+            this.LogoutButton.UseVisualStyleBackColor = true;
             // 
             // ShowInformationButton
             // 
             this.ShowInformationButton.Location = new System.Drawing.Point(217, 303);
             this.ShowInformationButton.Name = "ShowInformationButton";
-            this.ShowInformationButton.Size = new System.Drawing.Size(188, 48);
+            this.ShowInformationButton.Size = new System.Drawing.Size(158, 48);
             this.ShowInformationButton.TabIndex = 13;
             this.ShowInformationButton.Text = "Show Information";
             this.ShowInformationButton.UseVisualStyleBackColor = true;
+            // 
+            // button3
+            // 
+            this.button3.Location = new System.Drawing.Point(428, 303);
+            this.button3.Name = "button3";
+            this.button3.Size = new System.Drawing.Size(131, 48);
+            this.button3.TabIndex = 15;
+            this.button3.Text = "Logout";
+            this.button3.UseVisualStyleBackColor = true;
+            this.button3.Click += new System.EventHandler(this.LogOutButton_Click);
             // 
             // MenuForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(679, 432);
+            this.Controls.Add(this.button3);
             this.Controls.Add(this.ShowInformationButton);
-            this.Controls.Add(this.button2);
+            this.Controls.Add(this.LogoutButton);
             this.Controls.Add(this.StartGameButton);
             this.Controls.Add(this.PlayerIDInputLbl);
             this.Controls.Add(this.PlayerIDLbl);
@@ -211,7 +223,8 @@
         private System.Windows.Forms.Label PlayerIDLbl;
         private System.Windows.Forms.Label PlayerIDInputLbl;
         private System.Windows.Forms.Button StartGameButton;
-        private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.Button LogoutButton;
         private System.Windows.Forms.Button ShowInformationButton;
+        private System.Windows.Forms.Button button3;
     }
 }

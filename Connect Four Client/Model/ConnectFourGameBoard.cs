@@ -12,16 +12,20 @@ namespace Connect_Four_Client.Model
     {
         RED,
         YELLOW,
-        NONE
+        NONE,
+        TIE
     }
     public class ConnectFourGameBoard
     {
         public const int ROWS_NUM = 6;
         public const int COLUMNS_NUM = 7;
         public const int CONNECT_NUM = 4;
+
+        public int CountUpdate { get; set; }
         public PlayerTool[,] Board { get; set; }
         public ConnectFourGameBoard() {
             InitializeGameBoard();
+            CountUpdate = 0;
         }
 
         private void InitializeGameBoard()
@@ -40,16 +44,34 @@ namespace Connect_Four_Client.Model
             }
         }
 
-        private bool IsIndexIsEmpty(int row, int col)
+        public bool IsValidIndex(int row, int col)
         {
-            // check if the index if empty = PlayerTool.NONE
-            if(row < 0 || col < 0 || col > COLUMNS_NUM - 1 || row > ROWS_NUM - 1 ) 
-                return false;
-            
-            return Board[row, col] == PlayerTool.NONE;
+            // check if row and col is valid index
+            return (row >= 0 && row < ROWS_NUM && col >= 0 && col < COLUMNS_NUM);
+        }
+        public bool IsIndexIsEmpty(int row, int col)
+        {
+            // check if the index is valid and if empty = PlayerTool.NONE
+            return IsValidIndex(row, col) && Board[row, col] == PlayerTool.NONE;
         }
 
-        private Tuple<bool, PlayerTool> UpdateBoard(int row, int col, PlayerTool playerTool)
+
+        public bool IsColumnAvailable(int col)
+        {
+            return IsIndexIsEmpty(0, col);
+        }
+        
+        public int GetNextAvailableRowByCol(int col)
+        {
+            for(int row=ROWS_NUM-1; row >= 0; row--)
+            {
+                if(IsIndexIsEmpty(row, col))
+                    return row;
+            }
+            return -1;
+        }
+
+        public Tuple<bool, PlayerTool> UpdateBoard(int row, int col, PlayerTool playerTool)
         {
             // ***
             // The function update the game board and retrun Tuple<bool, PlayerTool>
@@ -63,8 +85,11 @@ namespace Connect_Four_Client.Model
             if(IsIndexIsEmpty(row, col))
             {
                 Board[row, col] = playerTool;
-                if(IsWinner(row, col, playerTool))
+                CountUpdate++;
+                if (IsWinner(row, col, playerTool))
                     return Tuple.Create(true, playerTool);
+                else if (CountUpdate == ROWS_NUM * COLUMNS_NUM)
+                    return Tuple.Create(true, PlayerTool.TIE);
                 else
                     return Tuple.Create(true, PlayerTool.NONE);
             }
@@ -72,7 +97,7 @@ namespace Connect_Four_Client.Model
             return Tuple.Create(false, PlayerTool.NONE);
         }
 
-        private bool IsWinner(int row, int col, PlayerTool playerTool)
+        public bool IsWinner(int row, int col, PlayerTool playerTool)
         {
             //The function will return if the player is a winner
 
@@ -83,32 +108,71 @@ namespace Connect_Four_Client.Model
             if (IsWinnerInCols(row, col, playerTool))
                 return true;
             // check winner in diagonals
-            if (IsWinnerInDiagonal(row, col, playerTool))
+            if (IsWinnerInDiagonals(row, col, playerTool))
                 return true;
             return false;
 
         }
 
-        private bool IsWinnerInDiagonal(int row, int col, PlayerTool playerTool)
+        private bool IsWinnerInDiagonals(int row, int col, PlayerTool playerTool)
         {
-            
-            throw new NotImplementedException();
+            // check in 4 possible diagonals
+            int counterToUpLeft = 0;
+            int counterToUpRight = 0;
+            int counterToDownLeft = 0;
+            int counterToDownRight = 0;
+            for (int i = 0; i < CONNECT_NUM; i++)
+            {
+                // check from index to up left
+                if(IsValidIndex(row-i, col-i) && Board[row - i, col - i] == playerTool)
+                    counterToUpLeft++;
+                // check from index to up right
+                if (IsValidIndex(row-i, col+i)&& Board[row - i, col + i] == playerTool)
+                    counterToUpRight++;
+                // check from index to down left
+                if (IsValidIndex(row + i, col - i)  && Board[row + i, col - i] == playerTool)
+                    counterToDownLeft++;
+                // check from index to down right
+                if (IsValidIndex(row + i, col + i)  && Board[row + i, col + i] == playerTool)
+                    counterToDownRight++;
+            }
+
+            return counterToUpLeft == CONNECT_NUM || counterToUpRight == CONNECT_NUM || counterToDownLeft == CONNECT_NUM || counterToDownRight == CONNECT_NUM;
         }
 
         private bool IsWinnerInCols(int row, int col, PlayerTool playerTool)
         {
-            throw new NotImplementedException();
+            int counterToUp = 0;
+            int counterToDown = 0;
+            for (int i = 0; i < CONNECT_NUM; i++)
+            {
+                // check from index to down
+                if (IsValidIndex(row + i, col) && Board[row + i, col] == playerTool)
+                    counterToUp += 1;
+                // check from index to up
+                if (IsValidIndex(row - i, col ) && Board[row - i, col] == playerTool)
+                    counterToDown += 1;
+            }
+            return counterToUp == CONNECT_NUM || counterToDown == CONNECT_NUM;
         }
 
         private bool IsWinnerInRows(int row, int col, PlayerTool playerTool)
         {
-            int counter = 0;
-            for(int i=0; i < CONNECT_NUM; i ++)
+            int counterToLeft = 0;
+            int counterToRight = 0;
+            for (int i=0; i < CONNECT_NUM; i ++)
             {
-                if (col + i < COLUMNS_NUM && Board[row,col + i] == playerTool) 
-                    counter += 1;
+                // check from index to right
+                if (IsValidIndex(row, col+i) && Board[row,col + i] == playerTool)
+                    counterToRight += 1;
+                // check from indec to left
+                if (IsValidIndex(row, col-i) && Board[row, col - i] == playerTool)
+                    counterToLeft += 1;
             }
-            throw new NotImplementedException();
+            return counterToLeft == CONNECT_NUM || counterToRight == CONNECT_NUM;
         }
+
+
+
     }
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Connect_Four_Client.Model;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -31,7 +32,13 @@ namespace Connect_Four_Client
 
         private void StartGameButton_Click(object sender, EventArgs e)
         {
+            new ConnectFourGameForm().Show();
 
+        }
+
+        private void LogOutButton_Click(object sender, EventArgs e)
+        {
+            this.Close();
         }
     }
 }
