@@ -14,13 +14,17 @@ namespace Connect_Four_Client.Model
         public DateTime Date { get; set; }
         public int Id { get; set; }
         public List<Move> Moves { get; set; }
+        public Player Player { get; set; }
+        public PlayerTool Winner { get; set; }
 
-
-        public Game(int id) {
-            GameBoard= new ConnectFourGameBoard();
+        public Game(int id, Player player)
+        {
+            GameBoard = new ConnectFourGameBoard();
             Date = DateTime.Now;
             Moves = new List<Move>();
             Id = id;
+            Player = player;
+            Winner = PlayerTool.NONE;
         }
 
         public Tuple<bool, PlayerTool> UpdateBoard(int row, int col, PlayerTool playerTool)

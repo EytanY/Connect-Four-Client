@@ -40,7 +40,6 @@
             this.GamePanel.TabIndex = 0;
             this.GamePanel.Paint += new System.Windows.Forms.PaintEventHandler(this.GamePanel_Paint);
             this.GamePanel.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.GamePanel_MouseDoubleClick);
-            this.GamePanel.MouseMove += new System.Windows.Forms.MouseEventHandler(this.GamePanel_MouseMove);
             // 
             // EndGameButton
             // 

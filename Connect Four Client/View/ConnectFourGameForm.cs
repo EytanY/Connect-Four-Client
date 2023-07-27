@@ -1,4 +1,4 @@
-﻿//using Connect_Four_Client.DB;
+﻿using Connect_Four_Client.Services.DB;
 using Connect_Four_Client.Model;
 using System;
 using System.Collections.Generic;
@@ -10,16 +10,23 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Connect_Four_Client.Model.Tables;
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using Connect_Four_Client.Model.Serialization;
+using System.Data.Entity.Core.Common.CommandTrees.ExpressionBuilder;
+using Connect_Four_Client.Model.HTTP;
 
 namespace Connect_Four_Client
 {
     public partial class ConnectFourGameForm : Form
     {
         Game Game{ get; set; }
-
-        private const int ANIMATION_INTERVAL = 200; // Time interval for animation in milliseconds
-        private const int ANIMATION_DISTANCE = 25; // Distance to move the ball in each interval
-        private const int BALL_SIZE = 50;
+        Player Player { get; set; }
+        public static int ANIMATION_INTERVAL = 150; // Time interval for animation in milliseconds
+        public static int ANIMATION_DISTANCE = 25; // Distance to move the ball in each interval
+        public static int BALL_SIZE = 50;
         private bool IsAnimating { get; set; } // Indicates if a ball is currently being animated
         private int CurrentColumn { get; set; } // The column where the ball is being dropped
         private int CurrentRow { get; set; }
@@ -27,34 +34,31 @@ namespace Connect_Four_Client
         private bool IsSuccess { get; set; } 
         private PlayerTool Winner { get; set; }
         private int AnimationPosition { get; set; } // Current position of the ball during animation
-
+        private bool IsGameOver { get; set; }
         private Timer AnimationTimer { get; set; }
         PlayerTool CurrentPlayer { get; set; }
 
-        //private GameDataBaseDataContext gameDataBaseDataContext = new GameDataBaseDataContext();
+        private HistoryGameDataBaseDataContext historyGameDataBaseDataContext = new HistoryGameDataBaseDataContext();
 
-        public ConnectFourGameForm()
+        private HttpClient Client { get; set; }
+        public ConnectFourGameForm(int gameId, Player player)
         {
             InitializeComponent();
-            
-            Game = new Game(10);
-
-            // save the new game id in data base with the player id
-            // save in server
-
-            //save in client
-            //gameDataBaseDataContext.GameTbls.InsertOnSubmit(new GameTbl { Id=Game.Id });
-            //gameDataBaseDataContext.SubmitChanges();
-
+            // init the games / the game id is from the response of the server
+            Game = new Game(gameId, player);
+            Player = player;
             CurrentPlayer = PlayerTool.YELLOW;
             this.DoubleBuffered = true;
             // Set up the animation timer
             AnimationTimer = new Timer();
             AnimationTimer.Interval = ANIMATION_INTERVAL;
             AnimationTimer.Tick += AnimationTimer_Tick;
+            // set GameOver to false
+            IsGameOver = false;
+            Client = new HttpClient();
         }
 
-        private void ConnectFourGame_Load(object sender, EventArgs e)
+        private void ConnectFourGame_Load(object objectSender, EventArgs e)
         {
             this.GamePanel.Location = new Point(
                 this.ClientSize.Width / 2 - this.GamePanel.Size.Width / 2,
@@ -62,6 +66,15 @@ namespace Connect_Four_Client
             this.GamePanel.Anchor = AnchorStyles.None;
             this.GamePanel.Size = new Size(BALL_SIZE * ConnectFourGameBoard.COLUMNS_NUM, BALL_SIZE * ConnectFourGameBoard.COLUMNS_NUM);
             StopAnimation();
+
+
+            // for the put and get requests
+            Client.BaseAddress = new Uri("https://localhost:7114/");
+            Client.DefaultRequestHeaders.Accept.Clear();
+            Client.DefaultRequestHeaders.Accept.Add(
+                new MediaTypeWithQualityHeaderValue("application/json"));
+            ServicePointManager.ServerCertificateValidationCallback += (sender, cert, chain, sslPolicyErrors) => true;
+
         }
 
         private void ConnectFourGame_Paint(object sender, PaintEventArgs e)
@@ -107,11 +120,7 @@ namespace Connect_Four_Client
             this.Close();
         }
 
-        private void GamePanel_MouseMove(object sender, MouseEventArgs e)
-        {
-            
-        }
-        private void AnimationTimer_Tick(object sender, EventArgs e)
+        private async void AnimationTimer_Tick(object sender, EventArgs e)
         {
             // Move the ball animation downwards
             AnimationPosition += ANIMATION_DISTANCE;
@@ -122,11 +131,12 @@ namespace Connect_Four_Client
 
                 StopAnimation();
                 // Item2 contain the winner if we have
-                if (IsSuccess && Winner != PlayerTool.NONE)
+                if (!IsGameOver && IsSuccess && Winner != PlayerTool.NONE)
                 {
+                    IsGameOver = true;
                     GamePanel.Invalidate();
                     // Initializes the variables to pass to the MessageBox.Show method.
-                    
+
                     string message = "Winner is " + (Winner == PlayerTool.YELLOW ? "YOU!" : "Server");
                     if (Winner == PlayerTool.TIE)
                         message = "It is a TIE!";
@@ -135,21 +145,67 @@ namespace Connect_Four_Client
                     MessageBoxButtons buttons = MessageBoxButtons.OK;
                     DialogResult dialogResult;
 
-                    // Displays the MessageBox.
+                    // post the winner in the game
+                    try
+                    {
+                        await HttpClientServerRequest.UpdateGamesTblsAsync(new GamesTbl { Id = Game.Id, PlayerId = Player.Id, Date = Game.Date, Winner = (int)Winner });
+                    }
+                    catch (Exception)
+                    {
+                        MessageBox.Show("Error with save the winner in the server", "Error");
+                    }
+
+                    // Displays the Winner.
                     dialogResult = MessageBox.Show(message, title, buttons);
-                    if (dialogResult == System.Windows.Forms.DialogResult.OK)
+                    if (dialogResult == DialogResult.OK)
                     {
                         // Closes the parent form.
                         this.Close();
                     }
+
+
                 }
-                if (IsSuccess)
+                if(CurrentPlayer == PlayerTool.YELLOW)
+                {
                     ChangeCurrentPlayer();
+                    ServerMove();
+                }
+                else
+                {
+                    ChangeCurrentPlayer();
+                }
+               
+                
             }
             // Redraw the game board with the updated animation position
             GamePanel.Invalidate();
         }
-        private void GamePanel_MouseDoubleClick(object sender, MouseEventArgs e)
+
+        private async void ServerMove()
+        {
+            // server trun
+            try
+            {
+                //post request to the server
+                Move move = await HttpClientServerRequest.PostGameBoardAndGetNextMoveAsync(Game.GameBoard);
+                if (move != null && !IsGameOver)
+                {
+                    ActivateClientAnimation(move.Row, move.Col);
+                    Tuple<bool, PlayerTool> result = Game.UpdateBoard(move.Row, move.Col, CurrentPlayer);
+
+                    // activate annimation of the client move
+                    ActivateClientAnimation(move.Row, move.Col);
+                    //save the move in database
+                    SaveMoveInHistory(result);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString(), ex.Message);
+
+            }
+        }
+        private  void GamePanel_MouseDoubleClick(object sender, MouseEventArgs e)
         {
             if (IsAnimating) return;
 
@@ -161,32 +217,25 @@ namespace Connect_Four_Client
                 int row = Game.GetNextAvailableRowByCol(col);
                 Tuple<bool, PlayerTool> result = Game.UpdateBoard(row, col, CurrentPlayer);
 
-                // For the animation
-                IsSuccess = result.Item1;
-                if(IsSuccess)
-                {
-                    Winner = result.Item2;
-                    //Add Move to the database
-                    //gameDataBaseDataContext.HistoryGameTbls.InsertOnSubmit(new HistoryGameTbl { GameId=Game.Id, MoveNumber=Game.Moves.Count, Row=Game.Moves.Last().Row, Col=Game.Moves.Last().Col, YellowTool=Game.Moves.Last().YelloTool});
-                    //gameDataBaseDataContext.SubmitChanges();
-                    
-                    ActivateAnimation(row, col);
-                    
-                }
-
-
-                // get request to the server
-
-                // update the board based on the server response
-
-
-                // save the move of the server
-
+                // activate annimation of the client move
+                ActivateClientAnimation(row, col);
+                //save the move in database
+                SaveMoveInHistory(result);
 
             }
-
         }
-
+        private void SaveMoveInHistory(Tuple<bool, PlayerTool> result)
+        {
+            // For the animation
+            IsSuccess = result.Item1; // return if the board was updated 
+            if (IsSuccess)
+            {
+                Winner = result.Item2; // return the winner if we have, or return TIE/NONE
+                //Add Move to the database
+                historyGameDataBaseDataContext.HistoryGameTbls.InsertOnSubmit(new HistoryGameTbl { PlayerId = Player.Id, GameId = Game.Id, MoveNum = Game.Moves.Count, Row = Game.Moves.Last().Row, Col = Game.Moves.Last().Col, YellowTool = Game.Moves.Last().YelloTool });
+                historyGameDataBaseDataContext.SubmitChanges();   
+            }
+        }
         private void ChangeCurrentPlayer()
         {
             if(CurrentPlayer == PlayerTool.YELLOW)
@@ -196,7 +245,7 @@ namespace Connect_Four_Client
             
         }
 
-        private void ActivateAnimation(int row, int col)
+        private void ActivateClientAnimation(int row, int col)
         {
             CurrentColumn = col;
             CurrentRow = row;

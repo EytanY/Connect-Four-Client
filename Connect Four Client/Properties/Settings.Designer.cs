@@ -26,33 +26,11 @@ namespace Connect_Four_Client.Properties {
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.SpecialSettingAttribute(global::System.Configuration.SpecialSetting.ConnectionString)]
-        [global::System.Configuration.DefaultSettingValueAttribute("Data Source=(LocalDB)\\MSSQLLocalDB;AttachDbFilename=|DataDirectory|\\GameDB.mdf;In" +
-            "tegrated Security=True")]
-        public string GameDBConnectionString {
+        [global::System.Configuration.DefaultSettingValueAttribute("Data Source=(LocalDB)\\MSSQLLocalDB;AttachDbFilename=|DataDirectory|\\Services\\DB\\H" +
+            "istoryGameDataBase.mdf;Integrated Security=False")]
+        public string HistoryGameDataBaseConnectionString {
             get {
-                return ((string)(this["GameDBConnectionString"]));
-            }
-        }
-        
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.SpecialSettingAttribute(global::System.Configuration.SpecialSetting.ConnectionString)]
-        [global::System.Configuration.DefaultSettingValueAttribute("Data Source=(LocalDB)\\MSSQLLocalDB;AttachDbFilename=|DataDirectory|\\GameDataBase." +
-            "mdf;Integrated Security=True")]
-        public string GameDataBaseConnectionString {
-            get {
-                return ((string)(this["GameDataBaseConnectionString"]));
-            }
-        }
-        
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.SpecialSettingAttribute(global::System.Configuration.SpecialSetting.ConnectionString)]
-        [global::System.Configuration.DefaultSettingValueAttribute("Data Source=(LocalDB)\\MSSQLLocalDB;AttachDbFilename=|DataDirectory|\\DB\\GameDateBa" +
-            "se.mdf;Integrated Security=True")]
-        public string GameDateBaseConnectionString {
-            get {
-                return ((string)(this["GameDateBaseConnectionString"]));
+                return ((string)(this["HistoryGameDataBaseConnectionString"]));
             }
         }
     }

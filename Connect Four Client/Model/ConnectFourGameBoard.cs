@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,8 +21,8 @@ namespace Connect_Four_Client.Model
         public const int ROWS_NUM = 6;
         public const int COLUMNS_NUM = 7;
         public const int CONNECT_NUM = 4;
-
         public int CountUpdate { get; set; }
+
         public PlayerTool[,] Board { get; set; }
         public ConnectFourGameBoard() {
             InitializeGameBoard();

@@ -6,19 +6,7 @@ using System.Threading.Tasks;
 
 namespace Connect_Four_Client.Model
 {
-    public enum COUNTRY
-    {
-        ISRAEL,
-        USA,
-        FRANCE,
-        GERMANY,
-        SPAIN,
-        JAPAN,
-        CHINA,
-        RUSSIA,
-
-    }
-    public class Player : User
+    public class Player 
     {
         public string  FirstName { get; set; }  
         public string LastName { get; set; }
@@ -26,26 +14,25 @@ namespace Connect_Four_Client.Model
 
         public int GamesNum { get; set; }
 
-        public COUNTRY Couunrty { get; set; }
         public string Phone { get; set; }
 
+        public Country Counrty { get; set; }
 
-
-        public Player(string email, string pass, string firstName, string lastName, int id, COUNTRY couunrty, string phone): base(email, pass)
+        public Player(string firstName, string lastName, int id, Country couunrty, string phone)
         {
             FirstName = firstName;
             LastName = lastName;
             Id = id;
-            Couunrty = couunrty;
+            Counrty = couunrty;
             Phone = phone;
             GamesNum = 0;
         }
-        public Player(string email, string pass, string firstName, string lastName, int id, COUNTRY couunrty, string phone, int gameNum) : base(email, pass)
+        public Player(string firstName, string lastName, int id, Country counrty, string phone, int gameNum) 
         {
             FirstName = firstName;
             LastName = lastName;
             Id = id;
-            Couunrty = couunrty;
+            Counrty = counrty;
             Phone = phone;
             GamesNum = gameNum;
         }
